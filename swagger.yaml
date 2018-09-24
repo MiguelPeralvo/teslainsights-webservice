@@ -1,0 +1,98 @@
+swagger: '2.0'
+info:
+  title: TeslaMonitor API
+  version: "0.1"
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /globalsentiments:
+    get:
+      tags: [Sentiment, NLP, "Social Networks"]
+      operationId: app.get_historic_global_sentiments
+      summary: Get all recent global sentiments
+      parameters:
+        - name: from_ms_ago
+          in: query
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+          default: 864000000
+        - name: from_created_epoch_ms
+          in: query
+          type: integer
+          format: int64
+          default: 1532441907000
+          minimum: 1532441907000
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100000
+          default: 1000
+        - name: sample_rate
+          in: query
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1.0
+          default: 1.0
+        - name: sentiment_type
+          in: query
+          type: string
+          default: all
+          enum:
+              - all
+              - social_teslamonitor
+              - social_external_ensemble
+              - news_external_ensemble
+              - global_external_ensemble
+      responses:
+        200:
+          description: Return recent global sentiments
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GlobalSentiment'
+
+
+definitions:
+  GlobalSentiment:
+    type: object
+
+    properties:
+      sentiment_type:
+        type: string
+        description: Type of sentiment social/news and source external_computations (Benzinga, Tipranks, ...)/teslamonitor
+        example: "social_teslamonitor"
+        readOnly: true
+      sentiment_seconds_back:
+        type: integer
+        format: int32
+        description: How many seconds for past sentiment were taken into account to calculate this data point
+        example: 43200
+        readOnly: true
+      created_at_epoch_ms:
+        type: integer
+        format: int64
+        description: When the sentiment value was computed
+        minimum: 1532441907000
+        example: 1533441907000
+        readOnly: true
+      sentiment_absolute:
+        type: number
+        format: float
+        description: Sentiment value (can be bigger than 100)
+        example: 102.5
+        readOnly: true
+      sentiment_normalized:
+        type: number
+        format: float
+        description: Sentiment normalised value
+        minimum: 0
+        maximum: 1.0
+        example: 0.25
+        readOnly: true

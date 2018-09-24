@@ -1,0 +1,10 @@
+beautifulsoup4==4.6.0
+boto3==1.7.19
+connexion>=1.5.1
+Flask==0.12.4
+Flask-Injector==0.10.1
+mysql-connector==2.1.6
+scrapy==1.5.0
+sqlalchemy==1.2.8
+sshtunnel==0.1.3
+splitstream==1.2.1

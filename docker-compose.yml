@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+
+  webservice:
+    container_name: webservice
+    restart: always
+    build: .
+    environment:
+      - MODE
+      - AUTOMLPREDICTOR_DB_SERVER_IP
+      - AUTOMLPREDICTOR_DB_SQL_USER
+      - AUTOMLPREDICTOR_DB_SQL_PASSWORD
+      - AUTOMLPREDICTOR_DB_PORT
+      - AUTOMLPREDICTOR_DB_SSH_USER
+      - AUTOMLPREDICTOR_DB_SSH_PASSWORD
+    volumes:
+      - .:/code
+    ports:
+      - "8080:8080"
+
+  nginx:
+    container_name: nginx
+    restart: always
+    build: ./nginx
+    ports:
+      - "9091:80"
+    depends_on:
+      - webservice
