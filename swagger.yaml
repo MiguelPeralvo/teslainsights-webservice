@@ -7,37 +7,41 @@ consumes:
 produces:
   - application/json
 paths:
-  /globalsentiments:
+  /global_sentiments:
     get:
       tags: [Sentiment, NLP, "Social Networks"]
       operationId: app.get_historic_global_sentiments
       summary: Get all recent global sentiments
       parameters:
         - name: from_ms_ago
+          description: Minimum Unix epoch/timestamp in milliseconds (UTC) of the items returned (when they were computed).
           in: query
           type: integer
           format: int64
           minimum: 0
           maximum: 100000000000
-          default: 864000000
+          default: 86400000
         - name: from_created_epoch_ms
+          description: Minimum Unix epoch/timestamp in milliseconds (UTC) of the items returned (when they were computed).
           in: query
           type: integer
           format: int64
           default: 1532441907000
           minimum: 1532441907000
         - name: limit
+          description: Max number of items returned
           in: query
           type: integer
           format: int32
           minimum: 0
-          maximum: 100000
+          maximum: 250000
           default: 1000
         - name: sample_rate
+          description: Value lower than 1.0 useful when trying to cover a long period, but trying to preserve some bandwith (like with dashboards).
           in: query
           type: number
           format: float
-          minimum: 0
+          minimum: 0.01
           maximum: 1.0
           default: 1.0
         - name: sentiment_type
