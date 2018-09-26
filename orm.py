@@ -39,16 +39,16 @@ def init_db(ssh, db_host, database_name, db_user, db_password, db_port, ssh_user
         local_bind_port = ssh_server.local_bind_port
         engine = create_engine(
             f'mysql+mysqlconnector://{db_user}:{db_password}@127.0.0.1:{local_bind_port}/{database_name}?charset={charset}',
-            convert_unicode=True
+            convert_unicode=True, pool_recycle=3600
         )
 
     else:
         engine = create_engine(
             f'mysql+mysqlconnector://{db_user}:{db_password}@{db_host}:{db_port}/{database_name}?charset={charset}',
-            convert_unicode=True
+            convert_unicode=True, pool_recycle=3600
         )
 
-    db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine, pool_recycle=3600))
+    db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
     Base.query = db_session.query_property()
     Base.metadata.create_all(bind=engine)
     return db_session
