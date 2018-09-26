@@ -48,7 +48,7 @@ def init_db(ssh, db_host, database_name, db_user, db_password, db_port, ssh_user
             convert_unicode=True
         )
 
-    db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+    db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine, pool_recycle=3600))
     Base.query = db_session.query_property()
     Base.metadata.create_all(bind=engine)
     return db_session

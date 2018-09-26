@@ -3,15 +3,11 @@ import os
 from datetime import datetime
 import traceback
 import logging
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 import connexion
-from connexion import NoContent
-
 import orm
-
 db_session = None
 
 
@@ -28,8 +24,8 @@ def get_historic_global_sentiments(
 
     if sentiment_type=='all':
         in_all = [
-            'social_teslamonitor', 'social_external_ensemble', 'news_external_ensemble',
-            'global_external_ensemble', 'stocktwits', 'twitter'
+            'social_teslamonitor', 'social_external_ensemble',
+            'news_external_ensemble', 'global_external_ensemble'
         ]
 
         q = q.filter(
@@ -46,12 +42,9 @@ def get_historic_global_sentiments(
     # The sampling is not random, we try to make the sample points equidistant in terms of points in the between.
     if sample_rate < 1:
         skip_rate = int(sample_rate * 100)
-        final_list = [p.dump() for i, p in enumerate(q) if (i % 100) < skip_rate][:limit]
-        return final_list
+        return [p.dump() for i, p in enumerate(q) if (i % 100) < skip_rate][:limit]
     else:
-        final_list = [p.dump() for p in q][:limit]
-        return final_list
-
+        return [p.dump() for p in q][:limit]
 
 
 db_host = os.getenv('AUTOMLPREDICTOR_DB_SERVER_IP', '127.0.0.1')
