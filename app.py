@@ -27,20 +27,25 @@ def get_historic_global_sentiments_inner(
         starting_point = max(utc_now - from_ms_ago, from_created_epoch_ms)
 
         if sentiment_type == 'all':
-            in_all = [
+            sentiment_types = [
                 'social_teslamonitor', 'social_external_ensemble',
                 'news_external_ensemble', 'global_external_ensemble'
             ]
-
-            q = q.filter(
-                orm.GlobalSentiment.created_at_epoch_ms >= starting_point,
-                orm.GlobalSentiment.sentiment_type.in_(in_all),
-            )
+        elif sentiment_type == 'teslamonitor':
+            sentiment_types = [
+                'social_teslamonitor',
+            ]
+        elif sentiment_type == 'external':
+            sentiment_types = [
+                'social_external_ensemble', 'news_external_ensemble', 'global_external_ensemble'
+            ]
         else:
-            q = q.filter(
-                orm.GlobalSentiment.created_at_epoch_ms >= starting_point,
-            )
+            sentiment_types = [sentiment_type]
 
+        q = q.filter(
+            orm.GlobalSentiment.created_at_epoch_ms >= starting_point,
+            orm.GlobalSentiment.sentiment_type.in_(sentiment_types),
+        )
         q = q.order_by(orm.GlobalSentiment.created_at_epoch_ms.desc())
 
         # The sampling is not random, we try to make the sample points equidistant in terms of points in the between.

@@ -50,6 +50,8 @@ paths:
           default: all
           enum:
               - all
+              - teslamonitor
+              - external
               - social_teslamonitor
               - social_external_ensemble
               - news_external_ensemble
