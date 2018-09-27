@@ -28,6 +28,7 @@ class GlobalSentiment(Base):
         return dict([(k, v) for k, v in vars(self).items() if not k.startswith('_')])
 
 def init_db(ssh, db_host, database_name, db_user, db_password, db_port, ssh_username, ssh_password, charset='utf8mb4'):
+
     if ssh:
         ssh_server = SSHTunnelForwarder(
             ssh_address_or_host=(db_host, 22),
@@ -37,16 +38,16 @@ def init_db(ssh, db_host, database_name, db_user, db_password, db_port, ssh_user
 
         ssh_server.start()
         local_bind_port = ssh_server.local_bind_port
-        engine = create_engine(
-            f'mysql+mysqlconnector://{db_user}:{db_password}@127.0.0.1:{local_bind_port}/{database_name}?charset={charset}',
-            convert_unicode=True, pool_recycle=3600
-        )
-
+        final_db_port = local_bind_port
+        final_db_host = '127.0.0.1'
     else:
-        engine = create_engine(
-            f'mysql+mysqlconnector://{db_user}:{db_password}@{db_host}:{db_port}/{database_name}?charset={charset}',
-            convert_unicode=True, pool_recycle=3600
-        )
+        final_db_port = db_port
+        final_db_host = db_host
+
+    engine = create_engine(
+        f'mysql+mysqlconnector://{db_user}:{db_password}@{final_db_host}:{final_db_port}/{database_name}?charset={charset}',
+        convert_unicode=True, pool_recycle=3600
+    )
 
     db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
     Base.query = db_session.query_property()
