@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 import connexion
 import orm
 db_session = None
-MAX_RETRIES=1
+MAX_RETRIES = 1
 
 def get_historic_global_sentiments_inner(
         from_ms_ago=86400000, from_created_epoch_ms=1532441907000,
