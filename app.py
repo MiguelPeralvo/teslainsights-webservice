@@ -58,12 +58,15 @@ def get_historic_global_sentiments_inner(
     except sqlalchemy.exc.OperationalError:
         db_session.rollback()
         db_session.remove()
+        logger.warning(f'Recreating session because of issue with previous session: {traceback.format_exc()}')
 
         # Restore the session and retry.
         session_reconnect()
 
         if retry_count < MAX_RETRIES:
-            get_historic_global_sentiments_inner(from_ms_ago, from_created_epoch_ms, limit, sample_rate, sentiment_type, retry_count+1)
+            final_dataset = get_historic_global_sentiments_inner(
+                from_ms_ago, from_created_epoch_ms, limit, sample_rate, sentiment_type, retry_count+1
+            )
         else:
             raise
     except:
