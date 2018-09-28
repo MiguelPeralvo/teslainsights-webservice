@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+import random
+random.seed(27)
 from datetime import datetime
 import sqlalchemy.ext
 import traceback
@@ -46,12 +48,17 @@ def get_historic_global_sentiments_inner(
             orm.GlobalSentiment.created_at_epoch_ms >= starting_point,
             orm.GlobalSentiment.sentiment_type.in_(sentiment_types),
         )
+
         q = q.order_by(orm.GlobalSentiment.created_at_epoch_ms.desc())
 
         # The sampling is not random, we try to make the sample points equidistant in terms of points in the between.
         if sample_rate < 1:
-            skip_rate = int(sample_rate * 100)
-            final_dataset = [p.dump() for i, p in enumerate(q) if (i % 100) < skip_rate][:limit]
+            # pick_up_rate = (1/sample_rate).as_integer_ratio()
+            # skip_rate = int(sample_rate * 10000)
+            dataset = [(i, p.dump()) for i, p in enumerate(q)]
+            pre_limit_dataset = random.sample(dataset, int(sample_rate*len(dataset)))
+            # pre_limit_dataset = [p for i, p in enumerate(dataset) if (i % 10000) < skip_rate]
+            final_dataset = [value for index, value in sorted(pre_limit_dataset[:limit], key=lambda tup: tup[0])]
         else:
             final_dataset = [p.dump() for p in q][:limit]
 
