@@ -36,8 +36,19 @@ paths:
           minimum: 0
           maximum: 250000
           default: 1000
+        - name: downsample_freq
+          description: Overrides "sample_rate". Downsamples/Aggregates into bins of 10 seconds/100 seconds/1000 seconds/10000 seconds, averaging the sentiment for each bin. Note that the value for the current bin may change between calls.
+          in: query
+          type: integer
+          format: int32
+          enum:
+              - 10
+              - 100
+              - 1000
+              - 10000
+          allowEmptyValue : true
         - name: sample_rate
-          description: Value lower than 1.0 useful when trying to cover a long period, but trying to preserve some bandwith (like with dashboards).
+          description: Overriden by "resample_freq". Inactive if value is 1.0. Value lower than 1.0 useful when trying to cover a long period, but trying to preserve some bandwith.
           in: query
           type: number
           format: float
