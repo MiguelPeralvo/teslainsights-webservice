@@ -52,7 +52,7 @@ def get_historic_global_sentiments_inner(
 
             sql_query = f"""
                 SELECT sentiment_type, sentiment_seconds_back, 
-                created_at_epoch_ms/(1000*{downsample_freq}) AS bin,
+                ROUND(created_at_epoch_ms/(1000*{downsample_freq})) AS bin,
                 MIN(created_at_epoch_ms) AS created_at_epoch_ms,
                 AVG(sentiment_absolute) AS sentiment_absolute,
                 AVG(sentiment_normalized)  AS sentiment_normalized
