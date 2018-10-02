@@ -10,15 +10,15 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 import connexion
-import db
-db_connection = None
+import orm
+db_session = None
 MAX_RETRIES = 1
 
 def get_historic_global_sentiments_inner(
         from_ms_ago=86400000, from_created_epoch_ms=1532441907000,
         limit=1000, downsample_freq=None, sample_rate=1.0, sentiment_type='all', retry_count=0
 ):
-    global db_connection
+    global db_session
     final_dataset = []
     delta_ts = datetime.utcnow() - datetime(1970, 1, 1)
     utc_now = int((delta_ts.days * 24 * 60 * 60 + delta_ts.seconds) * 1000 + delta_ts.microseconds / 1000.0)
@@ -62,7 +62,7 @@ def get_historic_global_sentiments_inner(
                 LIMIT {limit}
             """
 
-            results = db_connection.connection().execute(sql_query)
+            results = db_session.connection().execute(sql_query)
 
             final_dataset = [
                 {
@@ -77,6 +77,14 @@ def get_historic_global_sentiments_inner(
             ]
 
         else:
+            # q = db_session.query(orm.GlobalSentiment)
+            #
+            # q = q.filter(
+            #     orm.GlobalSentiment.created_at_epoch_ms >= starting_point,
+            #     orm.GlobalSentiment.sentiment_type.in_(sentiment_types),
+            # )
+            #
+            # q = q.order_by(orm.GlobalSentiment.created_at_epoch_ms.desc())
             sql_query = f"""
                 SELECT sentiment_type, sentiment_seconds_back, 
                 created_at_epoch_ms,
@@ -92,7 +100,7 @@ def get_historic_global_sentiments_inner(
 
             # The sampling is not random, we try to make the sample points equidistant in terms of points in the between.
             if sample_rate < 1:
-                results = db_connection.connection().execute(sql_query)
+                results = db_session.connection().execute(sql_query)
 
                 # pick_up_rate = (1/sample_rate).as_integer_ratio()
                 # skip_rate = int(sample_rate * 10000)
@@ -116,7 +124,7 @@ def get_historic_global_sentiments_inner(
                     {sql_query}
                     LIMIT {limit}
                 '''
-                results = db_connection.connection().execute(sql_query)
+                results = db_session.connection().execute(sql_query)
 
                 final_dataset = [
                     {
@@ -130,14 +138,14 @@ def get_historic_global_sentiments_inner(
                     } for row in results
                 ]
 
-
+        db_session.commit()
     except sqlalchemy.exc.OperationalError:
-        db_connection.rollback()
-        db_connection.remove()
+        db_session.rollback()
+        db_session.remove()
         logger.warning(f'Recreating session because of issue with previous session: {traceback.format_exc()}')
 
         # Restore the session and retry.
-        reconnect()
+        session_reconnect()
 
         if retry_count < MAX_RETRIES:
             final_dataset = get_historic_global_sentiments_inner(
@@ -146,7 +154,7 @@ def get_historic_global_sentiments_inner(
         else:
             raise
     except:
-        db_connection.rollback()
+        db_session.rollback()
         logger.error(f'An error occurred when managing the query for retrieving global sentiment: {traceback.format_exc()}')
         raise
 
@@ -159,9 +167,9 @@ def get_historic_global_sentiments(
 ):
     return get_historic_global_sentiments_inner(from_ms_ago, from_created_epoch_ms, limit, downsample_freq, sample_rate, sentiment_type)
 
-def reconnect():
-    global db_connection
-    db_connection = db.connect_db(ssh, db_host, db_name, db_user, db_password, db_port, ssh_username, ssh_password, 'utf8mb4')
+def session_reconnect():
+    global db_session
+    db_session = orm.init_db(ssh, db_host, db_name, db_user, db_password, db_port, ssh_username, ssh_password, 'utf8mb4')
 
 
 db_host = os.getenv('AUTOMLPREDICTOR_DB_SERVER_IP', '127.0.0.1')
@@ -174,7 +182,7 @@ ssh_password = os.getenv('AUTOMLPREDICTOR_DB_SSH_PASSWORD')
 ssh = ssh_username is not None
 
 
-reconnect()
+session_reconnect()
 app = connexion.FlaskApp(__name__)
 app.add_api('swagger.yaml')
 
@@ -182,10 +190,7 @@ application = app.app
 
 @application.teardown_appcontext
 def shutdown_session(exception=None):
-
-    if db_connection and db_connection.is_connected():
-        db_connection.close()
-
+    db_session.remove()
 
 if __name__ == '__main__':
     app.run(port=8080)
