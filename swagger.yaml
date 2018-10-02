@@ -37,7 +37,7 @@ paths:
           maximum: 250000
           default: 1000
         - name: downsample_freq
-          description: Overrides "sample_rate". Downsamples/Aggregates into bins of 10 seconds/100 seconds/1000 seconds/10000 seconds, averaging the sentiment for each bin. Note that the value for the current bin may change between calls.
+          description: Overrides "sample_rate". Downsamples/Aggregates into bins of "downsample_freq seconds", averaging the sentiment for each bin. Note that the value for the current bin may change between calls.
           in: query
           type: integer
           format: int32

@@ -77,14 +77,6 @@ def get_historic_global_sentiments_inner(
             ]
 
         else:
-            # q = db_session.query(orm.GlobalSentiment)
-            #
-            # q = q.filter(
-            #     orm.GlobalSentiment.created_at_epoch_ms >= starting_point,
-            #     orm.GlobalSentiment.sentiment_type.in_(sentiment_types),
-            # )
-            #
-            # q = q.order_by(orm.GlobalSentiment.created_at_epoch_ms.desc())
             sql_query = f"""
                 SELECT sentiment_type, sentiment_seconds_back, 
                 created_at_epoch_ms,
@@ -100,24 +92,16 @@ def get_historic_global_sentiments_inner(
 
             # The sampling is not random, we try to make the sample points equidistant in terms of points in the between.
             if sample_rate < 1:
-                results = db_session.connection().execute(sql_query)
+                initial_results = db_session.connection().execute(sql_query)
 
                 # pick_up_rate = (1/sample_rate).as_integer_ratio()
                 # skip_rate = int(sample_rate * 10000)
-                dataset = [(i, row) for i, row in enumerate(results)]
+                dataset = [(i, row) for i, row in enumerate(initial_results)]
                 pre_limit_dataset = random.sample(dataset, int(sample_rate*len(dataset)))
                 # pre_limit_dataset = [p for i, p in enumerate(dataset) if (i % 10000) < skip_rate]
 
-                final_dataset = [
-                    {
-                        'sentiment_type': row[0],
-                        'sentiment_seconds_back': row[1],
-                        'created_at_epoch_ms': row[2],
-                        'sentiment_absolute': float(row[3]),
-                        'sentiment_normalized': row[4],
-                        'min_created_at_epoch_ms': row[5],
-                        'max_created_at_epoch_ms': row[6],
-                    } for _, row in sorted(pre_limit_dataset[:limit], key=lambda tup: tup[0])
+                results = [
+                    row for _, row in sorted(pre_limit_dataset[:limit], key=lambda tup: tup[0])
                 ]
             else:
                 sql_query = f'''
@@ -126,17 +110,17 @@ def get_historic_global_sentiments_inner(
                 '''
                 results = db_session.connection().execute(sql_query)
 
-                final_dataset = [
-                    {
-                        'sentiment_type': row[0],
-                        'sentiment_seconds_back': row[1],
-                        'created_at_epoch_ms': row[2],
-                        'sentiment_absolute': float(row[3]),
-                        'sentiment_normalized': row[4],
-                        'min_created_at_epoch_ms': row[5],
-                        'max_created_at_epoch_ms': row[6],
-                    } for row in results
-                ]
+            final_dataset = [
+                {
+                    'sentiment_type': row[0],
+                    'sentiment_seconds_back': row[1],
+                    'created_at_epoch_ms': row[2],
+                    'sentiment_absolute': float(row[3]),
+                    'sentiment_normalized': row[4],
+                    'min_created_at_epoch_ms': row[5],
+                    'max_created_at_epoch_ms': row[6],
+                } for row in results
+            ]
 
         db_session.commit()
     except sqlalchemy.exc.OperationalError:
