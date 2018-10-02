@@ -27,6 +27,15 @@ class GlobalSentiment(Base):
     def dump(self):
         return dict([(k, v) for k, v in vars(self).items() if not k.startswith('_')])
 
+
+class GlobalSentimentSummary(GlobalSentiment):
+    __tablename__ = 'analysis_global_sentiment'
+    __table_args__ = {'extend_existing': True}
+
+    min_created_at_epoch_ms = Column(BigInteger(), primary_key=True, nullable=True)
+    max_created_at_epoch_ms = Column(BigInteger(), primary_key=True, nullable=True)
+
+
 def init_db(ssh, db_host, database_name, db_user, db_password, db_port, ssh_username, ssh_password, charset='utf8mb4'):
 
     if ssh:

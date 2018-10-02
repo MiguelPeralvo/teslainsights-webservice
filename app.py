@@ -53,9 +53,11 @@ def get_historic_global_sentiments_inner(
             sql_query = f"""
                 SELECT sentiment_type, sentiment_seconds_back, 
                 ROUND(created_at_epoch_ms/(1000*{downsample_freq})) AS bin,
-                MIN(created_at_epoch_ms) AS created_at_epoch_ms,
+                ROUND(AVG(created_at_epoch_ms)) AS created_at_epoch_ms,
                 AVG(sentiment_absolute) AS sentiment_absolute,
-                AVG(sentiment_normalized)  AS sentiment_normalized
+                AVG(sentiment_normalized)  AS sentiment_normalized,
+                MIN(created_at_epoch_ms) AS min_created_at_epoch_ms,
+                MAX(created_at_epoch_ms) AS max_created_at_epoch_ms
                 FROM analysis_global_sentiment 
                 WHERE created_at_epoch_ms >= {starting_point}
                 AND sentiment_type IN ('{sentiment_types_sql}')
@@ -72,6 +74,8 @@ def get_historic_global_sentiments_inner(
                     'created_at_epoch_ms': row[3],
                     'sentiment_absolute': float(row[4]),
                     'sentiment_normalized': row[5],
+                    'min_created_at_epoch_ms': row[6],
+                    'max_created_at_epoch_ms': row[7],
                 } for row in results
             ][:limit]
 
@@ -95,6 +99,7 @@ def get_historic_global_sentiments_inner(
                 final_dataset = [value for index, value in sorted(pre_limit_dataset[:limit], key=lambda tup: tup[0])]
             else:
                 final_dataset = [p.dump() for p in q][:limit]
+
 
     except sqlalchemy.exc.OperationalError:
         db_session.rollback()

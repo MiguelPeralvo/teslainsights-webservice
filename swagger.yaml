@@ -70,11 +70,11 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/GlobalSentiment'
+              $ref: '#/definitions/GlobalSentimentSummary'
 
 
 definitions:
-  GlobalSentiment:
+  GlobalSentimentSummary:
     type: object
 
     properties:
@@ -92,7 +92,21 @@ definitions:
       created_at_epoch_ms:
         type: integer
         format: int64
-        description: When the sentiment value was computed
+        description: When the sentiment value was computed. Avg when the "downsample_freq" parameter is used for binning.
+        minimum: 1532441907000
+        example: 1533441907000
+        readOnly: true
+      min_created_at_epoch_ms:
+        type: integer
+        format: int64
+        description: Minimum of the bin when the "downsample_freq" parameter is used for binning.
+        minimum: 1532441907000
+        example: 1533441907000
+        readOnly: true
+      max_created_at_epoch_ms:
+        type: integer
+        format: int64
+        description: Maximum of the bin when the "downsample_freq" parameter is used for binning.
         minimum: 1532441907000
         example: 1533441907000
         readOnly: true
