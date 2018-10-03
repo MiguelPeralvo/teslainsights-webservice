@@ -142,7 +142,9 @@ def get_historic_global_sentiments_inner(
         logger.error(f'An error occurred when managing the query for retrieving global sentiment: {traceback.format_exc()}')
         raise
 
-    logger.info(f"Most recent max_created_at_epoch_ms: {final_dataset[0]['max_created_at_epoch_ms']}")
+    if len(final_dataset) > 0:
+        logger.info(f"Most recent max_created_at_epoch_ms: {final_dataset[0]['max_created_at_epoch_ms']}. sentiment_absolute: {final_dataset[0]['sentiment_absolute']}")
+
     return final_dataset
 
 def get_historic_global_sentiments(
