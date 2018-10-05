@@ -1,5 +1,5 @@
-# teslamonitor-webservice
-This is the web service associated to the [TeslaMonitor](https://github.com/MiguelPeralvo/teslamonitor) project. It contains different entrypoints to query/retrieve the data to be displayed.
+# teslainsights-webservice
+This is the web service associated to the [TeslaInsights](https://github.com/MiguelPeralvo/teslainsights) project. It contains different entrypoints to query/retrieve the data to be displayed.
 
 To run the web service, just execute the run_webservice.sh script in the root folder:
 
