@@ -69,7 +69,7 @@ def get_historic_global_sentiments_inner(
                     'sentiment_type': row[0],
                     'sentiment_seconds_back': row[1],
                     'created_at_epoch_ms': row[3],
-                    'sentiment_absolute': float(row[4]),
+                    'sentiment_absolute': float(row[4]) if row[4] is not None else 50.0,
                     'sentiment_normalized': row[5],
                     'min_created_at_epoch_ms': row[6],
                     'max_created_at_epoch_ms': row[7],
